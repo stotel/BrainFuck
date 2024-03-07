@@ -1,14 +1,35 @@
-.model small
+.model tiny
 .data
   fileName db "text.txt"
-  fileBuffer db 10000 dup(?)
+  fileBuffer dw 10000 dup(?)
 .code   
 ORG 0100h
 start:
+  mov cx,10000
+  mov ax, 0       ; Set accumulator (EAX) to zero (represents two zeros for dword)
+clear:
+    mov [si], ax    ; Store zero in current array element (dword)
+    dec cx
+    add si, 2       ; Move to next element
+    loop clear      ; Loop until counter reaches zero (CX)
+;work:
+  call readChar
+  call printChar
+  mov ax, 4C00h;end program code
+  int 21h;end program
 
-    mov ax, 4C00h
-    int 21h
+readChar proc
+  mov si, 0;set pointer to the buffer start
+  mov ah, 7 ; specify DOS "Character Input" function
+  int 21h ; Call DOS. Character returned in al
+  ret
+readChar endp
 
-
+printChar proc
+  mov ah, 2 ; Specify DOS "character Output" function 
+  mov dl, al ; Move character into dl 
+  int 21h ; Call DOS
+  ret
+printChar endp
 end start
 

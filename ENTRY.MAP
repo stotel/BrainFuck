@@ -1,0 +1,8 @@
+
+ Start  Stop   Length Name               Class
+
+ 00000H 00123H 00124H _TEXT              CODE
+ 00124H 04F4BH 04E28H _DATA              DATA
+
+Fatal: Cannot generate COM file : segment-relocatable items present in module D:\ENTRY.ASM
+
