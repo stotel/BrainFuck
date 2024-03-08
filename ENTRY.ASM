@@ -28,7 +28,7 @@ start:
     mov dx, offset charBuffer;buffer
     mov cx,1;one byte to read
     int 21h
-    cmp [charBuffer],0
+    cmp ax,0
     je cont
     mov al,[charBuffer]
     call printChar
@@ -68,4 +68,3 @@ printChar proc
   ret
 printChar endp
 end start
-
