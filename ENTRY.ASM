@@ -2,7 +2,7 @@
 .data
   fileName db "D:\Projects\School\BrainFuck\TEST1.B",0
   fileBuffer dw 10000 dup(?)
-  handle db ? ; Word variable for file handle
+  handle db ? ; byte variable for file handle
 .code   
 ORG 0100h
 start:
@@ -18,7 +18,7 @@ start:
     mov ah, 3Dh ; DOS Open-File function number 
     mov al, 0 ; 0 = Read-only access
     int 21h ; Call DOS to open file
-    mov [handle], al
+    mov [handle], al;store handle
   call readChar
   call printChar
   cont:

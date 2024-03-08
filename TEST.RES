@@ -1,9 +1,9 @@
 
 === test1.b ===
-f
+ test1.b
 === test2.b ===
-a
+ test2.b
 === test3.b ===
-5
+ test3.b
 === test4.b ===
-g
+ test4.b
