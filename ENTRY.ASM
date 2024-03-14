@@ -1,14 +1,10 @@
 .model tiny
 .data
   swich db 0
-  ;fileName db 128 dup(?)
-  fileBuffer db 10000 dup(?)
-  ;inputBuffer db 10000 dup(?)
-  buffer dw 10000 dup(?)
-  ;handle db ? ; byte variable for file handle
-  charBuffer dw ?
-  ;disabledAt dw ?
   enterBuf db 0Dh,0Ah,'$'
+  fileBuffer db 10000 dup(?)
+  buffer dw 10000 dup(?)
+  charBuffer dw ?
 .code   
 ORG 0100h
 start:
@@ -39,41 +35,13 @@ start:
     dec cx
     add si, 2       ; Move to next element
     loop clear      ; Loop until counter reaches zero (CX)
-  ;openFile:
-    ;mov dx, offset fileName ; Address filename with ds:dx 
-    ;mov ah, 3Dh ; DOS Open-File function number 
-    ;mov al, 0 ; 0 = Read-only access
-    ;int 21h ; Call DOS to open file
-    ;mov [handle], al;store handle
-    ;mov dx,0
   mov si,-1
   mov di,0
   mov cx,0
-  ;call dumpMemory
   mainSwitch:
     inc si
-    ;mov ax,offset di
-  ;xchg al,ah
-  ;call printChar;print test
-  ;xchg al,ah
-  ;mov ax, word [buffer+si]
-  ;call printChar
-  ;mov al,' '
-  ;call printChar
-    ;cmp si,77
-    ;jne notDump1
-    ;call dumpMemory
-    ;notDump1:
-    ;cmp si,286;323;215
-    ;jne notDump
-    ;call dumpMemory
-    ;notDump:
     mov al,[fileBuffer+si]
-    ;call printChar
     mov ah,[swich]
-    ;xchg al,ah
-    ;call printChar
-    ;xchg al,ah
     cmp ax,0
     jne plus
     jmp cont
@@ -101,7 +69,6 @@ start:
         cmp al, 5Bh ; [
         jne loopend
         push si
-        ;inc cx
         cmp word[buffer+di],0
         jne valid
         inc [swich]
@@ -113,18 +80,8 @@ start:
         jne print
         mov ax,si
         pop si
-        ;mov ax, word [buffer+di]
-        ;xchg al,ah
-        ;call printChar;print test
-        ;xchg al,ah
-        ;mov ax, word [buffer+di]
-        ;call printChar
-        ;mov ax,[buffer+di]
         cmp word [buffer+di],0
         jne validd
-        ;push si
-        ;pop si
-        ;pop si
         cmp [swich],0
         je ok
         dec [swich]
@@ -132,7 +89,6 @@ start:
         mov si,ax
         jmp mainSwitch
         validd:
-        ;mov si,cx
         dec si
         jmp mainSwitch
     print:
@@ -145,15 +101,12 @@ start:
         cmp ax, 2Ch ; ,
         jne toStart
         call readChar
-        ;mov [buffer+di], ax
     toStart:
         jmp mainSwitch
     cont:
-        ;call dumpMemory
         mov ax, 4C00h ; end program code
         int 21h ; end program
 readChar proc
-    ;push cx
     char:
     mov ah,3Fh ;read file directive
     mov bx,0;give bx the file hendle
@@ -170,33 +123,9 @@ readChar proc
     cmp ax,0Dh
     je char
     mov word [buffer+di],ax
-    
     ret
 readChar endp
-dumpMemory proc
-push si
-mov si,0
-
-a:
-mov ax,word[buffer+si]
-  xchg al,ah
-  call printChar;print test
-  xchg al,ah
-  mov ax, word [buffer+si]
-  call printChar
-  mov al,' '
-  call printChar
-add si,2
-;inc si
-cmp si,10000
-jne a
-pop si
-ret
-dumpMemory endp
-
 printChar proc
-  ;push ax
-  ;push di
   cmp al,0Ah
   jne pr
   mov ah, 09h             ; DOS Interrupt ah=9h print $ terminated string
@@ -207,8 +136,6 @@ printChar proc
   mov ah, 2 ; Specify DOS "character Output" function 
   mov dl, al ; Move character into dl 
   int 21h ; Call DOS
-  ;pop di
-  ;pop ax
   ret
 printChar endp
 end start
