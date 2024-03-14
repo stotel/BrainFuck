@@ -1,14 +1,17 @@
 .model tiny
 .data
   swich db 0
-  filePointer dw 0
   fileName db 128 dup(?)
+  fileBuffer db 10000 dup(?)
+  ;inputBuffer db 10000 dup(?)
   buffer dw 10000 dup(?)
   handle db ? ; byte variable for file handle
-  charBuffer db ?
+  charBuffer dw ?
+  ;disabledAt dw ?
 .code   
 ORG 0100h
 start:
+  ;pop ax
   call readFileName
   mov di,offset buffer
   mov cx,10000
@@ -29,82 +32,101 @@ start:
   readCodeFile:
     mov ah,3Fh ;read file directive
     mov bl,[handle];give bx the file hendle
-    mov dx, offset charBuffer;buffer
-    mov cx,1;one byte to read
+    mov dx, offset fileBuffer;buffer
+    mov cx,10000;one byte to read
     int 21h
-    cmp ax,0
-    jne c
+    mov si,ax
+    mov [fileBuffer+si],0
+    mov si,-1
+    mov di,0
+    mov cx,0
+  mainSwitch:
+    inc si
+    mov al,[fileBuffer+si]
+    call printChar
+
+    mov ah,[swich]
+    ;xchg al,ah
+    ;call printChar
+    ;xchg al,ah
+    cmp al,0
+    jne plus
     jmp cont
-    c:
-    inc filePointer
-    ;main switch
-    mov al,[charBuffer]
-    mov ah, [swich]; SWICH the command evaluation
     plus:
-      cmp ax,2Bh;+
-      jne minus
-      inc [buffer+di]
-      jmp readCodeFile
+        cmp ax, 2Bh ; +
+        jne minus
+        mov ax,[buffer+di]
+        inc ax
+        mov [buffer+di],ax
+        jmp mainSwitch
     minus:
-      cmp ax,2Dh;-
-      jne next
-      dec [buffer+di]
-      jmp readCodeFile
+        cmp ax, 2Dh ; -
+        jne next
+        mov ax,[buffer+di]
+        dec ax
+        mov [buffer+di],ax
+        jmp mainSwitch
     next:
-      cmp ax,3Eh;>
-      jne prev
-      inc di
-      jmp readCodeFile
+        cmp ax, 3Eh ; >
+        jne prev
+        inc di
+        inc di
+        jmp mainSwitch
     prev:
-      cmp ax,3Ch;<
-      jne loops
-      dec di
-      jmp readCodeFile
+        cmp ax, 3Ch ; <
+        jne loops
+        dec di
+        dec di
+        jmp mainSwitch
     loops:
-      cmp ax,5Bh;[
-      jne loopend
-      cmp [buffer+di],0
-      je disable
-      push [filePointer]
-      jmp readCodeFile 
-      disable:
-        inc [swich];disable command evaluetion exept for 0x015D
-        jmp readCodeFile
+        cmp al, 5Bh ; [
+        jne loopend
+        ;inc cx
+        cmp[buffer+di],0
+        jne valid
+        inc [swich]
+        jmp mainSwitch
+        valid:
+        push si
+        jmp mainSwitch
     loopend:
-      cmp ax,5Dh;]
-      jne loopendActivate
-      cmp [buffer+di],0
-      je readCodeFile
-      pop dx
-      dec dx
-      mov ah, 42h         ; DOS function for moving the file pointer
-      mov al, 0           ; Move pointer to start
-      mov bl, [handle]    ; File handle
-      mov cx, 0         ; Offset high word
-      int 21h             ; Call DOS interrupt   
-      jmp readCodeFile
-    loopendActivate:
-      cmp ax,15Dh;];enable command evaluation 015Dh
-      jne print
-      ;call printChar
-      dec [swich]
-      jmp readCodeFile
+        cmp al, 5Dh ; ]
+        jne print
+        mov ax,[buffer+di]
+        ;xchg al,ah
+        ;call printChar;print test
+        ;xchg al,ah
+        ;call printChar
+        ;mov ax,[buffer+di]
+        cmp al,0
+        jne validd
+        ;pop cx
+        cmp [swich],0
+        je ok
+        dec [swich]
+        ok:
+        jmp mainSwitch
+        validd:
+        pop si
+        dec si
+        jmp mainSwitch
     print:
-      cmp ax,2Eh;.
-      jne readd
-      mov ax,[buffer+di]
-      call printChar
-      jmp readCodeFile
+        cmp ax, 2Eh ; .
+        jne readd
+        mov ax, [buffer+di]
+        call printChar
+        jmp mainSwitch
     readd:
-      cmp ax,2Ch;,
-      jne toStart
-      call readChar
-      mov [buffer+di],ax
-      toStart:
-      jmp readCodeFile
-  cont:
-    mov ax, 4C00h;end program code
-    int 21h;end program
+        cmp ax, 2Ch ; ,
+        jne toStart
+        call readChar
+        ;mov [buffer+di], ax
+    toStart:
+        jmp mainSwitch
+    cont:
+        mov ax, 4C00h ; end program code
+        int 21h ; end program
+  
 
 readFileName proc
   mov di, -1
@@ -122,16 +144,39 @@ readFileName proc
 readFileName endp
 
 readChar proc
-  mov si, 0;set pointer to the buffer start
-  mov ah, 7 ; specify DOS "Character Input" function
-  int 21h ; Call DOS. Character returned in al
-  ret
+    ;push cx
+    char:
+    mov ah,3Fh ;read file directive
+    mov bl,0;give bx the file hendle
+    mov dx, offset charBuffer;buffer
+    mov cx,1;one byte to read
+    int 21h
+    cmp ax,0
+    jne c
+        mov word [buffer+di],0FFFFh
+        ret
+    c:
+    cmp [charBuffer],0Dh
+    jne d
+    jmp char
+    d:
+    mov ax,[charBuffer]
+    mov ah,0
+    mov word [buffer+di],ax
+    mov ax,word [buffer+di]
+        ;xchg al,ah
+        ;call printChar;print test
+        ;xchg al,ah
+        ;call printChar
+    ret
 readChar endp
 
 printChar proc
+  push ax
   mov ah, 2 ; Specify DOS "character Output" function 
   mov dl, al ; Move character into dl 
   int 21h ; Call DOS
+  pop ax
   ret
 printChar endp
 end start
