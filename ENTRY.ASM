@@ -27,17 +27,13 @@ start:
     mov si,ax
     mov [fileBuffer+si],0
   mov di,offset buffer
-  mov cx,10000
-  mov ax, 0       ; Set accumulator (EAX) to zero (represents two zeros for dword)
   mov si,offset buffer
   clear:
-    mov word [si], ax    ; Store zero in current array element (dword)
+    mov word [si], 0    ; Store zero in current array element (dword)
     dec cx
     add si, 2       ; Move to next element
     loop clear      ; Loop until counter reaches zero (CX)
   mov si,-1
-  mov di,0
-  mov cx,0
   mainSwitch:
     inc si
     mov al,[fileBuffer+si]
@@ -48,28 +44,30 @@ start:
     plus:
         cmp ax, 2Bh ; +
         jne minus
-        inc word [buffer+di]
+        inc word [di]
         jmp mainSwitch
     minus:
         cmp ax, 2Dh ; -
         jne next
-        dec word [buffer+di]
+        dec word [di]
         jmp mainSwitch
     next:
         cmp ax, 3Eh ; >
         jne prev
-        add di,2
+        inc di
+        inc di
         jmp mainSwitch
     prev:
         cmp ax, 3Ch ; <
         jne loopstart
-        sub di,2
+        dec di
+        dec di
         jmp mainSwitch
     loopstart:
         cmp al, 5Bh ; [
         jne loopend
         push si
-        cmp word[buffer+di],0
+        cmp word[di],0
         jne valid
         inc [swich]
         jmp mainSwitch
@@ -80,7 +78,7 @@ start:
         jne print
         mov ax,si
         pop si
-        cmp word [buffer+di],0
+        cmp word [di],0
         jne validd
         cmp [swich],0
         je ok
@@ -94,7 +92,7 @@ start:
     print:
         cmp ax, 2Eh ; .
         jne readd
-        mov ax, word [buffer+di]
+        mov ax, word [di]
         cmp al,0Ah
         jne pr
         mov ah, 09h             ; DOS Interrupt ah=9h print $ terminated string
@@ -117,14 +115,14 @@ start:
           int 21h
           cmp ax,0
           jne c
-            mov word [buffer+di],0FFFFh
+            mov word [di],0FFFFh
             jmp mainSwitch
           c:
           mov ax, [charBuffer]
           mov ah,0
           cmp ax,0Dh
           je char
-          mov word [buffer+di],ax
+          mov word [di],ax
           jmp mainSwitch
     toStart:
         jmp mainSwitch
