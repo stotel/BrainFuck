@@ -95,47 +95,40 @@ start:
         cmp ax, 2Eh ; .
         jne readd
         mov ax, word [buffer+di]
-        call printChar
+        cmp al,0Ah
+        jne pr
+        mov ah, 09h             ; DOS Interrupt ah=9h print $ terminated string
+        mov dx, offset enterBuf      ; Address of msg 
+        int 21h                 ; Int 21h/ah=9h Print msg 
+        jmp mainSwitch
+        pr:
+        mov ah, 2 ; Specify DOS "character Output" function 
+        mov dl, al ; Move character into dl 
+        int 21h ; Call DOS
         jmp mainSwitch
     readd:
         cmp ax, 2Ch ; ,
         jne toStart
-        call readChar
+        char:
+          mov ah,3Fh ;read file directive
+          mov bx,0;give bx the file hendle
+          mov dx, offset charBuffer;buffer
+          mov cx,1;one byte to read
+          int 21h
+          cmp ax,0
+          jne c
+            mov word [buffer+di],0FFFFh
+            jmp mainSwitch
+          c:
+          mov ax, [charBuffer]
+          mov ah,0
+          cmp ax,0Dh
+          je char
+          mov word [buffer+di],ax
+          jmp mainSwitch
     toStart:
         jmp mainSwitch
     cont:
         mov ax, 4C00h ; end program code
         int 21h ; end program
-readChar proc
-    char:
-    mov ah,3Fh ;read file directive
-    mov bx,0;give bx the file hendle
-    mov dx, offset charBuffer;buffer
-    mov cx,1;one byte to read
-    int 21h
-    cmp ax,0
-    jne c
-        mov word [buffer+di],0FFFFh
-        ret
-    c:
-    mov ax, [charBuffer]
-    mov ah,0
-    cmp ax,0Dh
-    je char
-    mov word [buffer+di],ax
-    ret
-readChar endp
-printChar proc
-  cmp al,0Ah
-  jne pr
-  mov ah, 09h             ; DOS Interrupt ah=9h print $ terminated string
-  mov dx, offset enterBuf      ; Address of msg 
-  int 21h                 ; Int 21h/ah=9h Print msg 
-  ret
-  pr:
-  mov ah, 2 ; Specify DOS "character Output" function 
-  mov dl, al ; Move character into dl 
-  int 21h ; Call DOS
-  ret
-printChar endp
 end start
