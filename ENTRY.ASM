@@ -30,8 +30,9 @@ start:
   mov si,offset buffer
   clear:
     mov word [si], 0    ; Store zero in current array element (dword)
-    dec cx
-    add si, 2       ; Move to next element
+    ;dec cx
+    inc si
+    inc si       ; Move to next element
     loop clear      ; Loop until counter reaches zero (CX)
   mov si,-1
   mainSwitch:
@@ -45,24 +46,24 @@ start:
         cmp ax, 2Bh ; +
         jne minus
         inc word [di]
-        jmp mainSwitch
+        ;jmp mainSwitch
     minus:
         cmp ax, 2Dh ; -
         jne next
         dec word [di]
-        jmp mainSwitch
+        ;jmp mainSwitch
     next:
         cmp ax, 3Eh ; >
         jne prev
         inc di
         inc di
-        jmp mainSwitch
+        ;jmp mainSwitch
     prev:
         cmp ax, 3Ch ; <
         jne loopstart
         dec di
         dec di
-        jmp mainSwitch
+        ;jmp mainSwitch
     loopstart:
         cmp al, 5Bh ; [
         jne loopend
@@ -70,7 +71,7 @@ start:
         cmp word[di],0
         jne valid
         inc [swich]
-        jmp mainSwitch
+        ;jmp mainSwitch
         valid:
         jmp mainSwitch
     loopend:
@@ -103,7 +104,7 @@ start:
         mov ah, 2 ; Specify DOS "character Output" function 
         mov dl, al ; Move character into dl 
         int 21h ; Call DOS
-        jmp mainSwitch
+        ;jmp mainSwitch
     readd:
         cmp ax, 2Ch ; ,
         jne toStart
@@ -123,7 +124,7 @@ start:
           cmp ax,0Dh
           je char
           mov word [di],ax
-          jmp mainSwitch
+          ;jmp mainSwitch
     toStart:
         jmp mainSwitch
     cont:
