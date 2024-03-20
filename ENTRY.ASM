@@ -4,10 +4,11 @@
   enterBuf db 0Dh,0Ah,'$'
   fileBuffer db 10000 dup(?)
   buffer dw 10000 dup(?)
-  charBuffer dw ?
+  charBuffer db ?
 .code   
 ORG 0100h
 start:
+
   findNameEnd:;put 0 at the end of command line args
     mov cl, ds:[80h]
     mov bx, 81h
@@ -77,17 +78,16 @@ start:
     loopend:
         cmp al, 5Dh ; ]
         jne print
-        mov ax,si
-        pop si
+        pop ax
         cmp word [di],0
         jne validd
         cmp [swich],0
         je ok
         dec [swich]
         ok:
-        mov si,ax
         jmp mainSwitch
         validd:
+        mov si,ax
         dec si
         jmp mainSwitch
     print:
@@ -111,7 +111,7 @@ start:
         char:
           mov ah,3Fh ;read file directive
           mov bx,0;give bx the file hendle
-          mov dx, offset charBuffer;buffer
+          mov dx,offset charBuffer;buffer
           mov cx,1;one byte to read
           int 21h
           cmp ax,0
@@ -119,11 +119,10 @@ start:
             mov word [di],0FFFFh
             jmp mainSwitch
           c:
-          mov ax, [charBuffer]
-          mov ah,0
-          cmp ax,0Dh
+          mov al, [charBuffer]
+          cmp al,0Dh
           je char
-          mov word [di],ax
+          mov word [di],al
           ;jmp mainSwitch
     toStart:
         jmp mainSwitch
