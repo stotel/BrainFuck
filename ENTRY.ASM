@@ -123,9 +123,10 @@ start:
             jmp mainSwitch
           c:
           mov al, [charBuffer]
+          mov ah,0
           cmp al,0Dh
           je char
-          mov word [di],al
+          mov word [di],ax
           ;mov ax, word[di]
           ;jmp mainSwitch
     toStart:
@@ -133,15 +134,4 @@ start:
     cont:
         mov ax, 4C00h ; end program code
         int 21h ; end program
-
-    printChar proc
-      push ax
-      push di
-      mov ah, 2 ; Specify DOS "character Output" function 
-      mov dl, al ; Move character into dl 
-      int 21h ; Call DOS
-      pop di
-      pop ax
-      ret
-    printChar endp
 end start
