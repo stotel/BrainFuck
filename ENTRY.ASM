@@ -109,11 +109,14 @@ start:
         cmp ax, 2Ch ; ,
         jne toStart
         char:
+          ;push di
           mov ah,3Fh ;read file directive
           mov bx,0;give bx the file hendle
           mov dx,offset charBuffer;buffer
           mov cx,1;one byte to read
           int 21h
+          ;pop di
+         ; mov byte ptr ds:[di -1], 0
           cmp ax,0
           jne c
             mov word [di],0FFFFh
@@ -123,10 +126,22 @@ start:
           cmp al,0Dh
           je char
           mov word [di],al
+          ;mov ax, word[di]
           ;jmp mainSwitch
     toStart:
         jmp mainSwitch
     cont:
         mov ax, 4C00h ; end program code
         int 21h ; end program
+
+    printChar proc
+      push ax
+      push di
+      mov ah, 2 ; Specify DOS "character Output" function 
+      mov dl, al ; Move character into dl 
+      int 21h ; Call DOS
+      pop di
+      pop ax
+      ret
+    printChar endp
 end start
